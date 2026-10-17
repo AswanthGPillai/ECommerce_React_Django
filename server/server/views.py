@@ -388,26 +388,78 @@ def addcart(request, uid):
                     return JsonResponse({'msg':"Added To cart"})
 
 
+# @csrf_exempt
+# def mycart(request,uid):
+#     if request.method == "POST":
+#         bookingdata = tbl_booking.objects.get(id=request.POST.get('bid'))
+#         bookingdata.booking_status = 1
+#         bookingdata.booking_amount = request.POST.get("grandTotal")
+#         bookingdata.save()
+#         cartdata = tbl_cart.objects.filter(booking=bookingdata)
+#         for i in cartdata:
+#             i.cart_status = 1
+#             i.save()
+#         return JsonResponse({"msg":"Checkout Successfully.."})
+#     else:
+#         bookingcount= tbl_booking.objects.filter(user=uid,booking_status=0).count()
+#         if bookingcount>0:
+#             bookingdata = tbl_booking.objects.get(user=uid,booking_status=0)
+#             cartdata =list( tbl_cart.objects.filter(booking=bookingdata).values('id','cart_qty','cart_status','product_id','booking_id','product__product_name','product__product_price'))
+#             return JsonResponse({'cartdata':cartdata})
+#         else:
+#             return JsonResponse({'msg':"Cart is Empty..."})
+
+
+
 @csrf_exempt
-def mycart(request,uid):
+def mycart(request, uid):
     if request.method == "POST":
-        bookingdata = tbl_booking.objects.get(id=request.POST.get('bid'))
+        bookingdata = tbl_booking.objects.get( id=request.POST.get('bid'))
         bookingdata.booking_status = 1
         bookingdata.booking_amount = request.POST.get("grandTotal")
         bookingdata.save()
+
         cartdata = tbl_cart.objects.filter(booking=bookingdata)
+
         for i in cartdata:
             i.cart_status = 1
             i.save()
-        return JsonResponse({"msg":"Checkout Successfully.."})
+
+        return JsonResponse({"msg": "Checkout Successfully.."})
+
     else:
-        bookingcount= tbl_booking.objects.filter(user=uid,booking_status=0).count()
-        if bookingcount>0:
+        bookingcount = tbl_booking.objects.filter(user=uid,booking_status=0).count()
+        if bookingcount > 0:
             bookingdata = tbl_booking.objects.get(user=uid,booking_status=0)
-            cartdata =list( tbl_cart.objects.filter(booking=bookingdata).values('id','cart_qty','cart_status','product_id','booking_id','product__product_name','product__product_price'))
-            return JsonResponse({'cartdata':cartdata})
+
+            cartdata = tbl_cart.objects.filter(booking=bookingdata)
+            result = []
+
+            for i in cartdata:
+                # Total available stock for this product
+                total_stock = tbl_stock.objects.filter( product=i.product_id).aggregate(total=Sum('stock_count'))['total'] or 0
+
+                # Quantity already booked in other carts
+                total_cart = tbl_cart.objects.filter(product=i.product_id,cart_status=1).aggregate(total=Sum('cart_qty'))['total'] or 0
+
+                # Available stock
+                available_stock = total_stock - total_cart
+
+                result.append({
+                    'id': i.id,
+                    'cart_qty': i.cart_qty,
+                    'cart_status': i.cart_status,
+                    'product_id': i.product_id,
+                    'booking_id': i.booking_id,
+                    'product__product_name': i.product.product_name,
+                    'product__product_price': i.product.product_price,
+                    'total_stock': available_stock,
+                })
+
+            return JsonResponse({'cartdata': result})
+
         else:
-            return JsonResponse({'msg':"Cart is Empty..."})
+            return JsonResponse({'msg': 'Cart is Empty...'})
 
         
 

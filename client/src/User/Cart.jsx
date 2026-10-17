@@ -17,7 +17,7 @@ const Cart = () => {
                 console.log(res.data.cartdata);
                 setCartData(res.data.cartdata)
                 calculateTotal()
-            }else if(res.data.msg){
+            } else if (res.data.msg) {
                 // alert(res.data.msg)
                 setMsg(res.data.msg)
             }
@@ -84,14 +84,14 @@ const Cart = () => {
     }
 
 
-    const handleRemove = async(id)=>{
+    const handleRemove = async (id) => {
         try {
             const res = await axios.post(`http://127.0.0.1:8000/cart_item_remove/${id}/`)
             alert(res.data.msg)
             fetchCartData()
         } catch (error) {
             console.log(error);
-            
+
         }
     }
 
@@ -121,12 +121,12 @@ const Cart = () => {
                         <td>{index + 1}</td>
                         <td>{data.product__product_name}</td>
                         <td>{data.product__product_price}</td>
-                        <td>  <input type="number" value={data.cart_qty} min={1} onChange={(e) => handleQty(data.id, Number(e.target.value))} /></td>
+                        <td>  <input type="number" value={data.cart_qty} min={1} max={data.total_stock} onChange={(e) => handleQty(data.id, Number(e.target.value))} /></td>
                         <td>
                             {data.product__product_price * data.cart_qty}
                         </td>
                         <td>
-                            <button onClick={()=>handleRemove(data.id)}>Remove</button>
+                            <button onClick={() => handleRemove(data.id)}>Remove</button>
                         </td>
                     </tr>
                 ))}
