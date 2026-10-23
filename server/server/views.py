@@ -489,3 +489,18 @@ def payment(request,bid):
         bookingData.save()
         return JsonResponse({"msg":"Payment Successfully Done..."})
     return JsonResponse({"bookingData":bookingData})
+
+
+
+@csrf_exempt
+def orders(request,uid):
+    bookingData= list(tbl_booking.objects.filter(user=uid).values())
+    cartData = list(tbl_cart.objects.filter(booking__user_id=uid).values('id','booking_id','cart_qty','cart_status','booking__booking_amount','booking__booking_status','product__product_name','product__product_price'))
+    print(cartData)
+    return JsonResponse ({"cartData":cartData,"bookingData":bookingData})
+
+
+
+
+
+

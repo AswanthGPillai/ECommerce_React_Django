@@ -51,6 +51,8 @@ urlpatterns = [
     path('cart_item_remove/<int:id>/',views.cart_item_remove),
 
     path('payment/<int:bid>/',views.payment),
+
+    path('orders/<int:uid>/',views.orders),
 ]
 
 if settings.DEBUG:
